@@ -11,11 +11,12 @@ When high-conviction opportunities are detected that pass strict fee-adjusted pr
 ## ✨ Core Features
 
 * **RAM-Only Architecture**: Zero database overhead. Data is streamed via WebSockets directly into a local Redis cache for blazing-fast read/write cycles.
-* **100% Real-Time Data**: Live feeds from Binance, Bybit, MEXC, BingX, Bitunix, and Coinbase.
+* **100% Real-Time Data**: Live feeds from Binance, Bybit, MEXC, BingX, and Coinbase.
 * **Strict Mathematical Execution**:
   * **Compound Net Profit**: Calculates exact capital returns by deducting both the *Taker Buy Fee* and *Taker Sell Fee* specifically for the two exchanges involved in the spread. Guarantees a rigid minimum net profit (e.g., `0.5%`) after all slippage and commissions.
   * **Clear Growth Momentum**: Evaluates live Binance trade streams to ensure `Recent Buy Volume > Recent Sell Volume` before firing an alert.
   * **Real-Time L2 Liquidity Squeeze**: Evaluates the live Coinbase Level-2 order book dynamically, comparing the total dollar value of the Sell Liquidity pool against the Buy Liquidity pool to ensure upward price pressure.
+* **Global Macro Context**: Enriches alerts by fetching the real-time **Fear & Greed Index** (via Alternative.me) and **Global 24h Volume** (via CoinMarketCap API). *Note: CMC is queried exactly once every 5 minutes to guarantee it stays 100% free under their 10,000 credit/month limit.*
 * **Premium Dashboard**: A beautifully designed, glassmorphic React/Vite dashboard running on vanilla CSS to monitor the live Exchange Matrix and Terminal-style alert logs.
 
 ---
@@ -64,8 +65,8 @@ cp .env.example .env
 ```
 Ensure your `.env` contains:
 ```env
-# Optional API Keys for mocked integrations or specific exchanges
-BITUNIX_API_KEY=your_bitunix_api_key_here
+# Required for 24h Volume Metrics (Free Basic Tier)
+CMC_API_KEY=your_coinmarketcap_api_key_here
 ```
 *(Binance, Bybit, MEXC, BingX, and Coinbase public websockets do not require API keys).*
 

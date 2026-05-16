@@ -8,7 +8,7 @@ class Settings:
     DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
     TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
-    BITUNIX_API_KEY = os.getenv("BITUNIX_API_KEY", "")
+    CMC_API_KEY = os.getenv("CMC_API_KEY", "")
     NEON_DATABASE_URL = os.getenv("NEON_DATABASE_URL", "")
     
     # Engine Thresholds
@@ -21,7 +21,6 @@ class Settings:
         "Bybit": 0.001,
         "MEXC": 0.001,    # often 0 for makers, but 0.1% for takers
         "BingX": 0.001,
-        "Bitunix": 0.001,
         "Coinbase": 0.004 # Advanced trade standard taker fee
     }
     

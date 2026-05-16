@@ -10,8 +10,8 @@ from .collectors.binance import start_binance_collector
 from .collectors.bybit import start_bybit_collector
 from .collectors.mexc import start_mexc_collector
 from .collectors.bingx import start_bingx_collector
-from .collectors.bitunix import start_bitunix_collector
 from .collectors.coinbase import start_coinbase_collector
+from .collectors.global_metrics import start_global_metrics_collector
 from .engine.arbitrage import ArbitrageDetector
 from .integrations.deepseek import generate_narrative
 from .integrations.telegram import send_telegram_alert
@@ -45,7 +45,7 @@ async def broadcast_loop():
                 for pair in settings.PAIRS:
                     symbol = pair.replace('/', '')
                     prices = {}
-                    for ex in ['Binance', 'Bybit', 'MEXC', 'BingX', 'Bitunix', 'Coinbase']:
+                    for ex in ['Binance', 'Bybit', 'MEXC', 'BingX', 'Coinbase']:
                         raw_tick = redis_client.get(f"tick:{ex}:{symbol}")
                         if raw_tick:
                             prices[ex] = json.loads(raw_tick)
@@ -69,13 +69,28 @@ async def broadcast_loop():
                                 long_liq = opp.get('cb_long_liq', 0)
                                 liq_diff = short_liq - long_liq
                                 
+                                # Pull Global Metrics
+                                fng_data_str = redis_client.get("global:fng")
+                                fng_str = "N/A"
+                                if fng_data_str:
+                                    fng = json.loads(fng_data_str)
+                                    fng_str = f"{fng.get('value')} ({fng.get('class')})"
+                                    
+                                base_sym = symbol.replace('USDT', '')
+                                cmc_vol_str = redis_client.get(f"global:cmc_vol:{base_sym}")
+                                cmc_vol = "N/A"
+                                if cmc_vol_str:
+                                    cmc_data = json.loads(cmc_vol_str)
+                                    cmc_vol = f"${cmc_data.get('volume_24h', 0):,.0f}"
+                                
                                 narrative = (
                                     f"🚨 LOCAL ALERT: {pair}\n"
                                     f"📈 Net Spread (Post-Fees): {opp['spread_pct']}%\n"
                                     f"🛒 Buy on {opp['buy_exchange']} at ${opp['buy_price']}\n"
                                     f"💰 Sell on {opp['sell_exchange']} at ${opp['sell_price']}\n"
                                     f"📊 Momentum: Buy Vol {round(opp.get('buy_vol', 0), 2)} | Sell Vol {round(opp.get('sell_vol', 0), 2)}\n"
-                                    f"💧 Coinbase Liq Pool: Sell {round(short_liq, 2)} - Buy {round(long_liq, 2)} (Diff: +{round(liq_diff, 2)})"
+                                    f"💧 Coinbase Liq Pool: Sell {round(short_liq, 2)} - Buy {round(long_liq, 2)} (Diff: +{round(liq_diff, 2)})\n"
+                                    f"🌍 Global Metrics: F&G {fng_str} | CMC 24h Vol: {cmc_vol}"
                                 )
                                 print("\n" + "="*40)
                                 print(narrative)
@@ -106,8 +121,8 @@ async def startup_event():
     asyncio.create_task(start_bybit_collector(redis_client, settings.PAIRS))
     asyncio.create_task(start_mexc_collector(redis_client, settings.PAIRS))
     asyncio.create_task(start_bingx_collector(redis_client, settings.PAIRS))
-    asyncio.create_task(start_bitunix_collector(redis_client, settings.PAIRS))
     asyncio.create_task(start_coinbase_collector(redis_client, settings.PAIRS))
+    asyncio.create_task(start_global_metrics_collector(redis_client, settings.PAIRS))
 
 @app.on_event("shutdown")
 async def shutdown_event():

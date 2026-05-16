@@ -26,6 +26,7 @@ export function ArbAlert({ opportunity }) {
           `💰 Sell on ${opportunity.sell_exchange} at $${opportunity.sell_price}\n` +
           `📊 Momentum: Buy Vol ${opportunity.buy_vol?.toFixed(2) || 0} | Sell Vol ${opportunity.sell_vol?.toFixed(2) || 0}\n` +
           `💧 Coinbase Liq Pool: Sell ${opportunity.cb_short_liq?.toFixed(2) || 0} - Buy ${opportunity.cb_long_liq?.toFixed(2) || 0} (Diff: +${((opportunity.cb_short_liq || 0) - (opportunity.cb_long_liq || 0)).toFixed(2)})\n` +
+          `🌍 Global Metrics: F&G (See Terminal) | CMC Vol (See Terminal)\n` +
           `========================================`
         )}
       </div>
