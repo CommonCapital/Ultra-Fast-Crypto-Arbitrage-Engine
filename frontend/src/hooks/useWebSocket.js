@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 
 export function useWebSocket(url) {
   const [data, setData] = useState([]);
+  const [globalData, setGlobalData] = useState(null);
   const [status, setStatus] = useState('Connecting...');
   const ws = useRef(null);
 
@@ -16,6 +17,9 @@ export function useWebSocket(url) {
       const message = JSON.parse(event.data);
       if (message.type === 'update') {
         setData(message.data);
+        if (message.global) {
+          setGlobalData(message.global);
+        }
       }
     };
 
@@ -36,5 +40,5 @@ export function useWebSocket(url) {
     };
   }, [url]);
 
-  return { data, status };
+  return { data, globalData, status };
 }

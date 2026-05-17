@@ -5,7 +5,7 @@ import { ArbAlert } from './components/ArbAlert';
 import { AlertLog } from './components/AlertLog';
 
 function App() {
-  const { data, status } = useWebSocket('ws://localhost:8000/ws');
+  const { data, globalData, status } = useWebSocket('ws://localhost:8000/ws');
   const [alerts, setAlerts] = useState([]);
   const [activePair, setActivePair] = useState('BTC/USDT');
   
@@ -48,25 +48,86 @@ function App() {
       <main className="main-content">
         <section className="panel">
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '1rem' }}>
-            {availablePairs.map(pair => (
+            {availablePairs.map(pair => {
+              const pairHasAlert = data.find(p => p.pair === pair)?.opportunity != null;
+              return (
               <button 
                 key={pair}
                 onClick={() => setActivePair(pair)}
                 style={{
-                  background: activePair === pair ? 'var(--primary)' : 'transparent',
-                  color: 'white',
-                  border: '1px solid var(--primary)',
+                  background: activePair === pair ? 'var(--accent-primary)' : (pairHasAlert ? 'rgba(239, 68, 68, 0.2)' : 'transparent'),
+                  color: pairHasAlert && activePair !== pair ? '#ff6b6b' : 'white',
+                  border: pairHasAlert ? '1px solid var(--danger)' : '1px solid var(--accent-primary)',
+                  boxShadow: pairHasAlert ? '0 0 15px rgba(239, 68, 68, 0.6)' : (activePair === pair ? '0 0 10px var(--accent-glow)' : 'none'),
                   padding: '0.5rem 1rem',
                   borderRadius: '4px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontWeight: pairHasAlert ? 'bold' : 'normal'
                 }}
               >
-                {pair}
+                {pair} {pairHasAlert && '🚨'}
               </button>
-            ))}
+            )})}
           </div>
           <h2>Live Exchange Matrix — {primaryPairData?.pair || 'Loading...'}</h2>
           <PriceMatrix prices={primaryPairData?.prices || {}} />
+        </section>
+
+        <section className="panel">
+          <h2>Market Signals & Liquidity — {primaryPairData?.pair || 'Loading...'}</h2>
+          <div className="signals-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+            <div className="signal-item">
+              <div className="signal-label">Fear & Greed Index</div>
+              <div className="signal-value" style={{ fontSize: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
+                {globalData?.fng ? (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--success)' }}>
+                      <span>Greed:</span>
+                      <span>{globalData.fng.value}%</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--danger)' }}>
+                      <span>Fear:</span>
+                      <span>{100 - parseInt(globalData.fng.value)}%</span>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem', textAlign: 'left' }}>
+                      Status: {globalData.fng.class}
+                    </div>
+                  </>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)' }}>Loading...</span>
+                )}
+              </div>
+            </div>
+            
+            <div className="signal-item">
+              <div className="signal-label">Coinbase Orderbook Liq (L2)</div>
+              <div className="signal-value" style={{ fontSize: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--success)' }}>
+                  <span>Buy (Longs):</span>
+                  <span>{primaryPairData?.prices?.Coinbase?.long_liq?.toFixed(2) || '0.00'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--danger)' }}>
+                  <span>Sell (Shorts):</span>
+                  <span>{primaryPairData?.prices?.Coinbase?.short_liq?.toFixed(2) || '0.00'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="signal-item">
+              <div className="signal-label">Binance Volume Momentum</div>
+              <div className="signal-value" style={{ fontSize: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--success)' }}>
+                  <span>Buy Vol:</span>
+                  <span>{primaryPairData?.prices?.Binance?.buy_vol?.toFixed(2) || '0.00'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--danger)' }}>
+                  <span>Sell Vol:</span>
+                  <span>{primaryPairData?.prices?.Binance?.sell_vol?.toFixed(2) || '0.00'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
         {primaryPairData?.opportunity && (

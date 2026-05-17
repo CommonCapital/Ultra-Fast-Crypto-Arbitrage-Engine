@@ -101,8 +101,15 @@ async def broadcast_loop():
                                 dashboard_data[-1]["opportunity"] = opp
                 
                 # Broadcast
+                fng_data_str = redis_client.get("global:fng")
+                fng = json.loads(fng_data_str) if fng_data_str else None
+                
                 for conn in active_connections:
-                    await conn.send_json({"type": "update", "data": dashboard_data})
+                    await conn.send_json({
+                        "type": "update", 
+                        "data": dashboard_data,
+                        "global": {"fng": fng}
+                    })
                     
         except Exception as e:
             logger.error(f"Broadcast loop error: {e}")

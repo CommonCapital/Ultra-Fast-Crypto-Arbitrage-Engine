@@ -65,6 +65,8 @@ async def start_binance_collector(redis_client, pairs):
                                 "pair": symbol,
                                 "price": float(data['c']),
                                 "volume": float(data['v']),
+                                "buy_vol": recent_volumes[symbol]['buy'],
+                                "sell_vol": recent_volumes[symbol]['sell'],
                                 "bid": float(data['b']),
                                 "ask": float(data['a'])
                             }

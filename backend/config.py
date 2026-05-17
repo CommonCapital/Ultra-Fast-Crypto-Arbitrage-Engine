@@ -25,6 +25,6 @@ class Settings:
     }
     
     # Pairs to track
-    PAIRS = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
+    PAIRS = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "ADA/USDT", "DOGE/USDT", "LINK/USDT", "AVAX/USDT"]
 
 settings = Settings()

@@ -14,26 +14,35 @@ export function PriceMatrix({ prices }) {
 
   if (!prices || Object.keys(prices).length === 0) return <div className="text-muted">Waiting for data...</div>;
 
-  // Calculate cheapest to buy (min ask) and most expensive to sell (max bid)
-  let minAskExchange = null;
-  let maxBidExchange = null;
-  let minAsk = Infinity;
-  let maxBid = -Infinity;
+  // Calculate cheapest and most expensive based on the last traded price (data.price)
+  // This ensures the visual highlight matches the large price number displayed to the user.
+  let minPriceExchange = null;
+  let maxPriceExchange = null;
+  let minPrice = Infinity;
+  let maxPrice = -Infinity;
 
   Object.entries(prices).forEach(([exchange, data]) => {
-    if (data.ask && data.ask > 0 && data.ask < minAsk) {
-      minAsk = data.ask;
-      minAskExchange = exchange;
-    }
-    if (data.bid && data.bid > 0 && data.bid > maxBid) {
-      maxBid = data.bid;
-      maxBidExchange = exchange;
+    if (data.price && data.price > 0) {
+      if (data.price < minPrice) {
+        minPrice = data.price;
+        minPriceExchange = exchange;
+      }
+      if (data.price > maxPrice) {
+        maxPrice = data.price;
+        maxPriceExchange = exchange;
+      }
     }
   });
 
+  // If the same exchange is both cheapest and most expensive (or if we only have 1 exchange), don't highlight it.
+  if (minPriceExchange === maxPriceExchange) {
+    minPriceExchange = null;
+    maxPriceExchange = null;
+  }
+
   let spreadPct = 0;
-  if (minAsk < Infinity && maxBid > -Infinity) {
-    spreadPct = ((maxBid - minAsk) / minAsk) * 100;
+  if (minPrice < Infinity && maxPrice > -Infinity) {
+    spreadPct = ((maxPrice - minPrice) / minPrice) * 100;
   }
 
   return (
@@ -57,22 +66,22 @@ export function PriceMatrix({ prices }) {
               }
             }
 
-            const isCheapest = exchange === minAskExchange;
-            const isExpensive = exchange === maxBidExchange;
+            const isCheapest = exchange === minPriceExchange;
+            const isExpensive = exchange === maxPriceExchange;
             
             let cardStyle = { position: 'relative' };
             if (isCheapest) {
               cardStyle.border = '1px solid var(--success)';
-              cardStyle.boxShadow = '0 0 10px rgba(0, 255, 136, 0.2)';
+              cardStyle.boxShadow = '0 0 10px rgba(16, 185, 129, 0.2)';
             } else if (isExpensive) {
-              cardStyle.border = '1px solid #ff00ea'; // magenta/pink for expensive
-              cardStyle.boxShadow = '0 0 10px rgba(255, 0, 234, 0.2)';
+              cardStyle.border = '1px solid var(--danger)';
+              cardStyle.boxShadow = '0 0 10px rgba(239, 68, 68, 0.2)';
             }
 
             return (
               <div key={exchange} className="exchange-card" style={cardStyle}>
                 {isCheapest && <div style={{ position: 'absolute', top: -10, left: 10, background: 'var(--success)', color: '#000', fontSize: '0.6rem', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>CHEAPEST (BUY)</div>}
-                {isExpensive && <div style={{ position: 'absolute', top: -10, left: 10, background: '#ff00ea', color: '#fff', fontSize: '0.6rem', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>MOST EXPENSIVE (SELL)</div>}
+                {isExpensive && <div style={{ position: 'absolute', top: -10, left: 10, background: 'var(--danger)', color: '#fff', fontSize: '0.6rem', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>MOST EXPENSIVE (SELL)</div>}
                 
                 <div className="exchange-name">{exchange}</div>
                 <div className="exchange-price" style={{ color: color, transition: 'color 0.3s' }}>
@@ -98,7 +107,7 @@ export function PriceMatrix({ prices }) {
             {spreadPct > 0 ? '+' : ''}{spreadPct.toFixed(4)}%
           </span>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-            (Buy on {minAskExchange} → Sell on {maxBidExchange})
+            (Buy on {minPriceExchange} → Sell on {maxPriceExchange})
           </div>
         </div>
       )}
