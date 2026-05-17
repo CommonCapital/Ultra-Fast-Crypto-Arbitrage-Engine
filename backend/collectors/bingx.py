@@ -47,13 +47,13 @@ async def start_bingx_collector(redis_client, pairs):
                             symbol = data['dataType'].split('@')[0].replace('-', '')
                             tick_data = data['data']
                             tick = {
-                                "ts": datetime.fromtimestamp(tick_data['T']/1000, tz=timezone.utc).isoformat(),
+                                "ts": datetime.fromtimestamp(tick_data['E']/1000, tz=timezone.utc).isoformat(),
                                 "exchange": "BingX",
                                 "pair": symbol,
                                 "price": float(tick_data['c']),
                                 "volume": float(tick_data['v']),
-                                "bid": float(tick_data['b']),
-                                "ask": float(tick_data['a'])
+                                "bid": float(tick_data['B']),
+                                "ask": float(tick_data['A'])
                             }
                             redis_client.set(f"tick:BingX:{symbol}", json.dumps(tick))
                     except json.JSONDecodeError:

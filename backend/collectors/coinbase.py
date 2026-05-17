@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 async def start_coinbase_collector(redis_client, pairs):
     # Coinbase liquidity reference only
-    url = "wss://advanced-trade-ws.cb.com"
+    url = "wss://advanced-trade-ws.coinbase.com"
 
     # Maintain local order book state for liquidity calculations
     orderbooks = {p.replace('/', ''): {'bids': {}, 'asks': {}} for p in pairs}
