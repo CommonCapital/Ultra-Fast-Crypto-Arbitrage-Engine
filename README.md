@@ -21,6 +21,19 @@ When high-conviction opportunities are detected that pass strict fee-adjusted pr
 
 ---
 
+## 🧠 Algorithmic Trading Strategy
+
+While the engine detects pure arbitrage (buying on Exchange A and selling on Exchange B), it is strategically designed for **Multi-Venue Signal Aggregation for Single-Venue Execution**. 
+
+Instead of executing simultaneously across exchanges (which incurs transfer fees and leg-risk), the platform uses the entire global market as a "radar" to predict high-probability directional momentum on a *single* target exchange. 
+
+The **AI Action Recommendation Engine** generates a live `Confidence Score (0-100%)` based on a confluence of strict triggers:
+1. **The Flow Gate (60% Weight):** Evaluates Binance's live trade streams to ensure `Buyer Taker Volume > Seller Taker Volume` (indicating strong retail buying pressure).
+2. **The Liquidity Squeeze (40% Weight):** Evaluates Coinbase's Level-2 order book. Heavy Short Liquidity (Sell walls) compared to Long Liquidity (Buy walls) increases the probability of a violent short-squeeze.
+3. **The Lagging Exchange Alpha (Bonus Confidence):** Scans all 5 exchanges simultaneously. If it spots a single exchange lagging behind the global market maximum price by `> 0.1%`, it flags that exchange as a tactical **Target Buy**, anticipating a rapid price-snap to catch up to the aggregate market.
+
+---
+
 ## 🛠 Technology Stack
 
 | Layer | Technology |
@@ -98,8 +111,8 @@ Navigate to `http://localhost:5173` to view the live exchange matrix!
 
 This MVP is currently optimized as a high-speed alerting system for manual discretionary trading. The architecture is explicitly designed to scale into a fully automated, quantitative fund-grade system:
 
-- [ ] **Automated Trade Execution**: Integrate the `ccxt` library and exchange API keys to automatically fire simultaneous `Market Buy` and `Market Sell` orders across exchanges the millisecond an alert triggers.
-- [ ] **Machine Learning Re-Integration**: Re-introduce XGBoost and LightGBM models to predict false-breakout probabilities using historical order-book imbalance data.
+- [ ] **Automated Single-Venue Execution**: Transition from alerting to automated execution using `ccxt`. The bot will place a Market Buy on the "Lagging Exchange" when Confidence is > 85%, and automatically deploy a dynamic trailing Take-Profit to sell once in profit (accounting for maker/taker fees).
+- [ ] **Machine Learning Re-Integration**: Re-introduce XGBoost and LightGBM models as the final "AI Gate" to predict false-breakout probabilities using historical order-book imbalance data before any automated execution is permitted.
 - [ ] **Telegram & DeepSeek Integration**: Re-connect API hooks to broadcast alerts dynamically to private Telegram channels using LLM-generated market narratives.
 - [ ] **Dynamic Fee API**: Transition from hardcoded exchange fee structures (`0.1%`) to dynamic API queries, accounting for VIP tiers and token-holding fee discounts (e.g., holding BNB on Binance).
 - [ ] **DEX Expansion**: Expand websocket collectors to include on-chain decentralized exchanges (Uniswap, Raydium) to catch CEX/DEX arbitrage gaps.

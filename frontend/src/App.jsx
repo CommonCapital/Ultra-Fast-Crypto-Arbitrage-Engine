@@ -127,6 +127,25 @@ function App() {
                 </div>
               </div>
             </div>
+
+            <div className="signal-item" style={{ border: '1px solid var(--accent-primary)', background: 'rgba(59, 130, 246, 0.05)' }}>
+              <div className="signal-label">AI Action Recommendation</div>
+              <div className="signal-value" style={{ fontSize: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: primaryPairData?.signals?.confidence >= 55 ? 'var(--success)' : (primaryPairData?.signals?.confidence <= 45 ? 'var(--danger)' : 'var(--text-main)') }}>
+                  <span>Signal:</span>
+                  <span style={{ fontWeight: 'bold' }}>{primaryPairData?.signals?.recommendation || 'NEUTRAL'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Confidence:</span>
+                  <span>{primaryPairData?.signals?.confidence || 50}%</span>
+                </div>
+                {primaryPairData?.signals?.lagging_exchange && primaryPairData.signals.recommendation.includes('BUY') && (
+                  <div style={{ fontSize: '0.75rem', color: 'var(--success)', marginTop: '0.2rem', textAlign: 'left', lineHeight: '1.4' }}>
+                    💡 Target: Buy on {primaryPairData.signals.lagging_exchange} (Lagging by {primaryPairData.signals.lagging_diff}%)
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </section>
 

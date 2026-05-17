@@ -51,9 +51,62 @@ async def broadcast_loop():
                             prices[ex] = json.loads(raw_tick)
                     
                     if prices:
+                        # --- Momentum & Lagging Engine ---
+                        binance_data = prices.get('Binance', {})
+                        buy_vol = binance_data.get('buy_vol', 0)
+                        sell_vol = binance_data.get('sell_vol', 0)
+                        vol_score = 50
+                        if buy_vol + sell_vol > 0:
+                            vol_score = (buy_vol / (buy_vol + sell_vol)) * 100
+                            
+                        coinbase_data = prices.get('Coinbase', {})
+                        short_liq = coinbase_data.get('short_liq', 0)
+                        long_liq = coinbase_data.get('long_liq', 0)
+                        liq_score = 50
+                        if short_liq + long_liq > 0:
+                            # Higher short liq = higher probability of short squeeze = bullish
+                            liq_score = (short_liq / (short_liq + long_liq)) * 100
+                            
+                        valid_prices = [d['price'] for d in prices.values() if d.get('price', 0) > 0]
+                        lagging_exchange = None
+                        lagging_diff_pct = 0
+                        if len(valid_prices) >= 2:
+                            max_p = max(valid_prices)
+                            min_p = min(valid_prices)
+                            
+                            for ex, d in prices.items():
+                                if d.get('price') == min_p:
+                                    lagging_exchange = ex
+                                    lagging_diff_pct = ((max_p - min_p) / min_p) * 100
+                                    break
+                                    
+                        confidence = (vol_score * 0.6) + (liq_score * 0.4)
+                        if lagging_diff_pct > 0.1:
+                            confidence += min(15, lagging_diff_pct * 10)
+                            
+                        confidence = min(100, max(0, confidence))
+                        
+                        recommendation = "NEUTRAL"
+                        if confidence >= 65:
+                            recommendation = "STRONG BUY"
+                        elif confidence >= 55:
+                            recommendation = "BUY"
+                        elif confidence <= 35:
+                            recommendation = "STRONG SELL"
+                        elif confidence <= 45:
+                            recommendation = "SELL"
+                            
+                        signal_data = {
+                            "confidence": round(confidence, 1),
+                            "recommendation": recommendation,
+                            "lagging_exchange": lagging_exchange if lagging_diff_pct > 0.1 else None,
+                            "lagging_diff": round(lagging_diff_pct, 2)
+                        }
+
                         dashboard_data.append({
                             "pair": pair,
-                            "prices": prices
+                            "prices": prices,
+                            "signals": signal_data
                         })
                         
                         # Arbitrage check
